@@ -1,0 +1,139 @@
+CREATE TABLE etaty (
+    id_etatu  INTEGER NOT NULL,
+    nazwa     VARCHAR2(255) NOT NULL,
+    placa_min INTEGER NOT NULL
+);
+
+ALTER TABLE etaty ADD CHECK ( placa_min BETWEEN 0 AND 20000 );
+
+ALTER TABLE etaty ADD CONSTRAINT etaty_pk PRIMARY KEY ( id_etatu );
+
+CREATE TABLE gry_komputerowe (
+    id_gry INTEGER NOT NULL,
+    nazwa  VARCHAR2(255) NOT NULL,
+    pegi   VARCHAR2(255) NOT NULL,
+    rodzaj VARCHAR2(255) NOT NULL
+);
+
+ALTER TABLE gry_komputerowe ADD CONSTRAINT gry_komputerowe_pk PRIMARY KEY ( id_gry );
+
+CREATE TABLE klienci (
+    id_klienta    INTEGER NOT NULL,
+    imie          VARCHAR2(255) NOT NULL,
+    nazwisko      VARCHAR2(255) NOT NULL,
+    adres         VARCHAR2(255) NOT NULL,
+    id_zamowienia INTEGER NOT NULL
+);
+
+ALTER TABLE klienci ADD CONSTRAINT klienci_pk PRIMARY KEY ( id_klienta );
+
+CREATE TABLE podzespoly (
+    id_podzespolu INTEGER NOT NULL,
+    nazwa         VARCHAR2(255) NOT NULL,
+    rodzaj        VARCHAR2(255) NOT NULL,
+    pamiec        VARCHAR2(255)
+);
+
+ALTER TABLE podzespoly ADD CONSTRAINT podzespoly_pk PRIMARY KEY ( id_podzespolu );
+
+CREATE TABLE pracownicy (
+    id_pracownika    INTEGER NOT NULL,
+    imie             VARCHAR2(255) NOT NULL,
+    nazwisko         VARCHAR2(255) NOT NULL,
+    zatrudniony      DATE NOT NULL,
+    placa_pod        INTEGER NOT NULL,
+    placa_dod        INTEGER,
+    sklepy_id_sklepu INTEGER NOT NULL,
+    etaty_id_etatu   INTEGER NOT NULL
+);
+
+ALTER TABLE pracownicy ADD CHECK ( placa_pod BETWEEN 0 AND 10000 );
+
+ALTER TABLE pracownicy ADD CHECK ( placa_dod BETWEEN 0 AND 10000000 );
+
+ALTER TABLE pracownicy ADD CONSTRAINT pracownicy_pk PRIMARY KEY ( id_pracownika );
+
+CREATE TABLE sklepy (
+    id_sklepu    INTEGER NOT NULL,
+    miasto       VARCHAR2(255) NOT NULL,
+    ulica        VARCHAR2(255) NOT NULL,
+    kod_pocztowy CHAR(6) NOT NULL
+);
+
+ALTER TABLE sklepy ADD CONSTRAINT sklepy_pk PRIMARY KEY ( id_sklepu );
+
+CREATE TABLE towary (
+    id_produktu              INTEGER NOT NULL,
+    cena                     INTEGER NOT NULL,
+    producent                VARCHAR2(255) NOT NULL,
+    czy_nowy                 CHAR(1) NOT NULL,
+    ilosc                    INTEGER NOT NULL,
+    gry_komputerowe_id_gry   INTEGER NOT NULL,
+    podzespoly_id_podzespolu INTEGER NOT NULL
+);
+
+ALTER TABLE towary ADD CHECK ( cena BETWEEN 0 AND 20000 );
+
+ALTER TABLE towary ADD CHECK ( ilosc BETWEEN 0 AND 100000 );
+
+CREATE UNIQUE INDEX towary__idx ON
+    towary (
+        gry_komputerowe_id_gry
+    ASC );
+
+CREATE UNIQUE INDEX towary__idxv1 ON
+    towary (
+        podzespoly_id_podzespolu
+    ASC );
+
+ALTER TABLE towary ADD CONSTRAINT towary_pk PRIMARY KEY ( id_produktu );
+
+CREATE TABLE transakcje (
+    id_transakcji            INTEGER NOT NULL,
+    cena                     FLOAT(2) NOT NULL,
+    ilosc                    INTEGER NOT NULL,
+    data                     DATE NOT NULL,
+    rodzaj_transakcji        VARCHAR2(12) NOT NULL,
+    klienci_id_klienta       INTEGER NOT NULL,
+    sklepy_id_sklepu         INTEGER NOT NULL,
+    towary_id_produktu       INTEGER NOT NULL,
+    pracownicy_id_pracownika INTEGER NOT NULL
+);
+
+ALTER TABLE transakcje ADD CHECK ( cena BETWEEN 0 AND 20000 );
+
+ALTER TABLE transakcje ADD CHECK ( ilosc BETWEEN 0 AND 100000 );
+
+ALTER TABLE transakcje ADD CONSTRAINT transakcje_pk PRIMARY KEY ( id_transakcji );
+
+ALTER TABLE pracownicy
+    ADD CONSTRAINT pracownicy_etaty_fk FOREIGN KEY ( etaty_id_etatu )
+        REFERENCES etaty ( id_etatu );
+
+ALTER TABLE pracownicy
+    ADD CONSTRAINT pracownicy_sklepy_fk FOREIGN KEY ( sklepy_id_sklepu )
+        REFERENCES sklepy ( id_sklepu );
+
+ALTER TABLE towary
+    ADD CONSTRAINT towary_gry_komputerowe_fk FOREIGN KEY ( gry_komputerowe_id_gry )
+        REFERENCES gry_komputerowe ( id_gry );
+
+ALTER TABLE towary
+    ADD CONSTRAINT towary_podzespoly_fk FOREIGN KEY ( podzespoly_id_podzespolu )
+        REFERENCES podzespoly ( id_podzespolu );
+
+ALTER TABLE transakcje
+    ADD CONSTRAINT transakcje_klienci_fk FOREIGN KEY ( klienci_id_klienta )
+        REFERENCES klienci ( id_klienta );
+
+ALTER TABLE transakcje
+    ADD CONSTRAINT transakcje_pracownicy_fk FOREIGN KEY ( pracownicy_id_pracownika )
+        REFERENCES pracownicy ( id_pracownika );
+
+ALTER TABLE transakcje
+    ADD CONSTRAINT transakcje_sklepy_fk FOREIGN KEY ( sklepy_id_sklepu )
+        REFERENCES sklepy ( id_sklepu );
+
+ALTER TABLE transakcje
+    ADD CONSTRAINT transakcje_towary_fk FOREIGN KEY ( towary_id_produktu )
+        REFERENCES towary ( id_produktu );
